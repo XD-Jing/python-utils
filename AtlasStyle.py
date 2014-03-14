@@ -28,6 +28,8 @@ class AtlasStyle( ROOT.TStyle ):
     # @param title The title given to the style
     def __init__( self, name = "AtlasStyle", title = "ATLAS style object" ):
 
+        print "Setting ATLAS style"
+
         # Initialise the base class:
         ROOT.TStyle.__init__( self, name, title )
         self.SetName( name )
@@ -62,20 +64,22 @@ class AtlasStyle( ROOT.TStyle ):
 
         # Set the paper and margin sizes:
         self.SetPaperSize( 20, 26 )
-        self.SetPadTopMargin( 0.05 )
+        self.SetPadTopMargin( 0.07 )
         self.SetPadRightMargin( 0.05 )
         self.SetPadBottomMargin( 0.16 )
         self.SetPadLeftMargin( 0.16 )
 
         # set title offsets (for axis label)
-        self.SetTitleXOffset(1.4);
-        self.SetTitleYOffset(1.4);
+        self.SetTitleXOffset(1.3);
+        self.SetTitleYOffset(1.3);
 
         # Use large fonts:
         font_type = 42
         font_size = 0.05
         self.SetTextFont( font_type )
         self.SetTextSize( font_size )
+        self.SetLegendFont( font_type )
+        #self.SetLegendSize( font_size )
         self.SetLabelFont( font_type, "x" )
         self.SetLabelSize( font_size, "x" )
         self.SetTitleFont( font_type, "x" )
@@ -109,6 +113,7 @@ class AtlasStyle( ROOT.TStyle ):
 # Tell ROOT to use this style:
 style = AtlasStyle()
 ROOT.gROOT.SetStyle( style.GetName() )
-#ROOT.gROOT.ForceStyle()
+# Force style applies styles to histograms made under a different style regim
+ROOT.gROOT.ForceStyle()
 ROOT.TGaxis.SetMaxDigits( 4 )
 ROOT.gStyle.SetPalette(1)

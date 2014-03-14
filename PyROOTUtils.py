@@ -17,8 +17,10 @@ the number codes that represent the alignment.
 import ROOT
 from array import array
 
+pretty_colours = [ 1, 2, 3, 4, 6, 65, 8, 9, 92]
 
-
+def pretty_colour( index ):
+    return pretty_colours[ index ]
 
 class Legend( ROOT.TLegend ):
    def __init__( self, x1, y1, x2 = 1.1, y2 = 1.1, halign = "fixed", valign = "fixed", font=42, textSize = None ):
@@ -74,8 +76,8 @@ class Legend( ROOT.TLegend ):
       ROOT.TLegend.Draw( self )
 
 
-class Graph( ROOT.TGraph ):
-   def __init__( self, x, y=None, fillColor=None, lineColor=None, lineStyle=None, lineWidth=None, sort=True ):
+class Graph( ROOT.TGraphErrors ):
+   def __init__( self, x, y=None, xerr=None, yerr=None, fillColor=None, lineColor=None, lineStyle=None, lineWidth=None, sort=True ):
       """ takes inputs of the form:
              x = [ (x1,y1), (x2,y2), ... ]
              y = None (default)
@@ -108,7 +110,17 @@ class Graph( ROOT.TGraph ):
             x = [i for i,j in xy]
             y = [j for i,j in xy]
    
-         ROOT.TGraph.__init__( self, len(x), array('f',x), array('f',y) )
+         if yerr:
+             if len(yerr) != len(x):
+                 raise RuntimeError("yerr does not have same length as x")
+             if xerr:
+                 if len(xerr) != len(x):
+                     raise RuntimeError("xerr does not have same length as x")
+             else:
+                 xerr = [0,] * len(x)
+             ROOT.TGraphErrors.__init__( self, len(x), array('f',x), array('f',y), array('f',xerr), array('f',yerr))
+         else:
+            ROOT.TGraphErrors.__init__( self, len(x), array('f',x), array('f',y) )
       
       
       if fillColor:
@@ -169,6 +181,15 @@ class Graph( ROOT.TGraph ):
          self.GetPoint( i, p[0], p[1] )
          if p[1] < min: min = p[1]
       return min
+      
+   def argmaxY( self ):
+      """ Get the maximum Y. """
+      max = -1e30
+      for i in range( 0, self.GetN() ):
+         p = ( ROOT.Double(), ROOT.Double() )
+         self.GetPoint( i, p[0], p[1] )
+         if p[1] > max: max = p[1]
+      return max
       
 
    def table( self, bandLow=None, bandHigh=None, bandDifference=True ):
@@ -384,6 +405,37 @@ def DrawTextAligned( x,y, textList, halignList=["right","center","left"], textCo
    for text,halign in zip( textList, halignList ):
       objs.append( DrawText( x,y, text, textColor, textSize, NDC, halign, valign ) )
    return objs
+
+def format_hist(hist, **kwargs):
+    # Do Rebin first to get maximum correct
+    if "rebin" in kwargs.keys():
+        hist.Rebin(kwargs["rebin"])
+    # Axis maxima - have to set these both at same time
+    if "ymax_scale" in kwargs.keys():
+        print hist.GetMaximum() , kwargs["ymax_scale"]
+        kwargs["ymax"] =  hist.GetMaximum() * kwargs["ymax_scale"] 
+    if not "ymax" in kwargs.keys():
+        kwargs["ymax"] = hist.GetYaxis().GetXmax()
+    if not "ymin" in kwargs.keys():
+        kwargs["ymin"] = hist.GetYaxis().GetXmin()
+    hist.GetYaxis().SetRangeUser( kwargs["ymin"], kwargs["ymax"] )
+    # ~~~~~~~~~~~~~
+    if "xmax" in kwargs.keys():
+        hist.GetXaxis().SetRangeUser( hist.GetXaxis().GetXmin(), kwargs["xmax"] )
+    if "xmin" in kwargs.keys():
+        hist.GetXaxis().SetRangeUser( kwargs["xmin"], hist.GetXaxis().GetXmax()  )
+    if "ytitle" in kwargs.keys():
+        hist.GetYaxis().SetTitle( kwargs["ytitle"] )
+    if "xtitle" in kwargs.keys():
+        hist.GetXaxis().SetTitle( kwargs["xtitle"] )
+    if "line_colour" in kwargs.keys():
+        hist.SetLineColor( kwargs["line_colour"] )
+    if "line_style" in kwargs.keys():
+        hist.SetLineStyle( kwargs["line_style"] )
+    if "line_width" in kwargs.keys():
+        hist.SetLineStyle( kwargs["line_style"] )
+    if "marker_style" in kwargs.keys():
+        hist.SetMarkerStyle( kwargs["marker_style"] )
 
 
 class RooArgSetIter:
