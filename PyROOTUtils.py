@@ -18,9 +18,14 @@ import ROOT
 from array import array
 
 pretty_colours = [ 1, 2, 3, 4, 6, 65, 8, 9, 92]
+pretty_markers = [ 1, 2, 3, 4, 6, 65, 8, 9, 92]
 
 def pretty_colour( index ):
     return pretty_colours[ index ]
+
+def pretty_marker( index ):
+    #return pretty_markers[ index ]
+    return index+19
 
 class Legend( ROOT.TLegend ):
    def __init__( self, x1, y1, x2 = 1.1, y2 = 1.1, halign = "fixed", valign = "fixed", font=42, textSize = None ):
@@ -412,7 +417,7 @@ def format_hist(hist, **kwargs):
         hist.Rebin(kwargs["rebin"])
     # Axis maxima - have to set these both at same time
     if "ymax_scale" in kwargs.keys():
-        print hist.GetMaximum() , kwargs["ymax_scale"]
+        #print hist.GetMaximum() , kwargs["ymax_scale"]
         kwargs["ymax"] =  hist.GetMaximum() * kwargs["ymax_scale"] 
     if not "ymax" in kwargs.keys():
         kwargs["ymax"] = hist.GetYaxis().GetXmax()
